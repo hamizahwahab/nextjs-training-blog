@@ -1,63 +1,70 @@
-import clientPromise, { dbName } from '@/lib/mongodb';
-import { redirect } from 'next/navigation';
+import clientPromise, { dbName } from "@/lib/mongodb";
+import { redirect } from "next/navigation";
 
 export default function AddPostPage() {
-  // This is a "Server Action" - it runs only on the server
   async function createPost(formData: FormData) {
-    'use server';
+    "use server";
 
-    const title = formData.get('title');
-    const author = formData.get('author');
-    const content = formData.get('content');
+    const title = formData.get("title");
+    const author = formData.get("author");
+    const content = formData.get("content");
 
     if (!title || !content) return;
 
     const client = await clientPromise;
     const db = client.db(dbName);
 
-    await db.collection('posts').insertOne({
+    await db.collection("posts").insertOne({
       title,
       author,
       content,
       createdAt: new Date(),
     });
 
-    // Send the user back to the homepage after saving
-    redirect('/');
+    redirect("/");
   }
 
   return (
-    <main style={styles.container}>
-      <h1>Add New Post</h1>
-      <form action={createPost} style={styles.form}>
-        <input 
-          name="title" 
-          placeholder="Post Title" 
-          required 
-          style={styles.input} 
-        />
-        <input 
-          name="author" 
-          placeholder="Your Name" 
-          required 
-          style={styles.input} 
-        />
-        <textarea 
-          name="content" 
-          placeholder="Write your content here..." 
-          required 
-          style={styles.textarea} 
-        />
-        <button type="submit" style={styles.button}>Publish Post</button>
+    <div className="max-w-xl mx-auto px-4 py-8 sm:py-12">
+      <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white mb-6">
+        Add New Post
+      </h1>
+      <form
+        action={createPost}
+        className="space-y-4"
+      >
+        <div>
+          <input
+            name="title"
+            placeholder="Post Title"
+            required
+            className="w-full px-4 py-3 text-base border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+          />
+        </div>
+        <div>
+          <input
+            name="author"
+            placeholder="Your Name"
+            required
+            className="w-full px-4 py-3 text-base border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+          />
+        </div>
+        <div>
+          <textarea
+            name="content"
+            placeholder="Write your content here..."
+            required
+            rows={6}
+            className="w-full px-4 py-3 text-base border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-y"
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+        >
+          Publish Post
+        </button>
       </form>
-    </main>
+    </div>
   );
 }
-
-const styles = {
-  container: { maxWidth: '600px', margin: '40px auto', padding: '0 20px' },
-  form: { display: 'flex', flexDirection: 'column' as const, gap: '15px' },
-  input: { padding: '10px', fontSize: '16px', borderRadius: '4px', border: '1px solid #ccc' },
-  textarea: { padding: '10px', fontSize: '16px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '150px' },
-  button: { padding: '12px', backgroundColor: '#0070f3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }
-};
