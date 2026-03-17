@@ -14,4 +14,10 @@ export const postSchema = z.object({
     .min(10, "Content must be at least 10 characters"),
 });
 
+export const commentSchema = z.object({
+  author: z.string().min(2, "Name must be at least 2 characters").max(50),
+  content: z.string().min(1, "Comment cannot be empty").max(500),
+});
+
 export type PostFormData = z.infer<typeof postSchema>;
+export type CommentFormData = z.infer<typeof commentSchema>;

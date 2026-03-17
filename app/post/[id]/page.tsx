@@ -1,8 +1,10 @@
 import clientPromise, { dbName } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import DeleteButton from "@/components/DeleteButton";
+import CommentsSection from "@/components/CommentsSection";
+
 
 interface Post {
   _id: ObjectId;
@@ -163,6 +165,18 @@ export default async function PostPage({ params }: PostPageProps) {
           {post.content}
         </section>
       </article>
+
+      {/* Comments Section */}
+      <div className="mt-8 border-t border-neutral-200 dark:border-neutral-800 pt-8">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
+          Comments
+        </h2>
+        
+        {/* Comment Form */}
+        <CommentsSection postId={id} />
+      </div>
+
     </div>
+    
   );
 }
