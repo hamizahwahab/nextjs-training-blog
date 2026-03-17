@@ -1,44 +1,18 @@
-import clientPromise, { dbName } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
-import Link from "next/link";
-import PostCard from "@/components/PostCard";
+import { Suspense } from "react";
 import SearchBar from "@/components/SearchBar";
+import PostList from "@/components/PostList";
 
-interface Post {
-  _id: ObjectId;
-  title: string;
-  author: string;
-  content: string;
-  createdAt?: Date;
+function SearchBarFallback() {
+  return (
+    <div className="relative w-full max-w-md mx-auto mb-8">
+      <div className="relative">
+        <div className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse h-12" />
+      </div>
+    </div>
+  );
 }
 
-interface HomePageProps {
-  searchParams: Promise<{ search?: string }>;
-}
-
-export const revalidate = 0;
-
-export default async function HomePage({ searchParams }: HomePageProps) {
-  const { search } = await searchParams;
-  
-  const client = await clientPromise;
-  const db = client.db(dbName);
-
-  const query = search
-    ? {
-        $or: [
-          { title: { $regex: search, $options: "i" } },
-          { content: { $regex: search, $options: "i" } },
-        ],
-      }
-    : {};
-
-  const posts = await db
-    .collection<Post>("posts")
-    .find(query)
-    .sort({ _id: -1 })
-    .toArray();
-
+export default function HomePage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <header className="text-center mb-8">
@@ -54,46 +28,29 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </p>
       </header>
 
-      <SearchBar />
+      <Suspense fallback={<SearchBarFallback />}>
+        <SearchBar />
+      </Suspense>
 
-      {search && (
-        <div className="text-center mb-6">
-          <p className="text-neutral-600 dark:text-neutral-400">
-            {posts.length === 0
-              ? `No results found for "${search}"`
-              : `Found ${posts.length} result${posts.length === 1 ? "" : "s"} for "${search}"`}
-          </p>
-        </div>
-      )}
-
-      {posts.length === 0 ? (
-        <div className="text-center py-12 sm:py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl">
-          <p className="text-neutral-600 dark:text-neutral-400 mb-4 text-lg">
-            {search
-              ? `No posts found matching "${search}".`
-              : "No posts found. Be the first to write something!"}
-          </p>
-          <Link
-            href="/add"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
-          >
-            Create a Post
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {posts.map((post) => (
-            <PostCard
-              key={post._id.toString()}
-              id={post._id.toString()}
-              title={post.title}
-              author={post.author}
-              content={post.content}
-              createdAt={post.createdAt}
-            />
-          ))}
-        </div>
-      )}
+      <Suspense
+        fallback={
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden p-5 animate-pulse"
+              >
+                <div className="h-6 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4 mb-3" />
+                <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2 mb-4" />
+                <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-full mb-2" />
+                <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-2/3" />
+              </div>
+            ))}
+          </div>
+        }
+      >
+        <PostList />
+      </Suspense>
     </div>
   );
 }

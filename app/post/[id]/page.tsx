@@ -20,18 +20,69 @@ export default async function PostPage({ params }: PostPageProps) {
   const { id } = await params;
 
   if (!ObjectId.isValid(id)) {
-    return notFound();
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
+          Invalid Post ID
+        </h2>
+        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+          The post ID format is invalid.
+        </p>
+        <Link
+          href="/"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+    );
   }
 
-  const client = await clientPromise;
-  const db = client.db(dbName);
+  let post: Post | null = null;
 
-  const post = await db.collection<Post>("posts").findOne({
-    _id: new ObjectId(id),
-  });
+  try {
+    const client = await clientPromise;
+    const db = client.db(dbName);
+    post = await db.collection<Post>("posts").findOne({
+      _id: new ObjectId(id),
+    });
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
+          Connection Error
+        </h2>
+        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+          Unable to connect to the database. Please check your MongoDB connection.
+        </p>
+        <Link
+          href="/"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+    );
+  }
 
   if (!post) {
-    return notFound();
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
+          Post Not Found
+        </h2>
+        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+          This post doesn&apos;t exist or has been deleted.
+        </p>
+        <Link
+          href="/"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+    );
   }
 
   async function deletePost() {
@@ -95,11 +146,14 @@ export default async function PostPage({ params }: PostPageProps) {
           </h1>
           <div className="text-neutral-500 dark:text-neutral-400 text-sm">
             <span>
-              Published by <strong className="text-neutral-700 dark:text-neutral-300">{post.author}</strong>
+              Published by{" "}
+              <strong className="text-neutral-700 dark:text-neutral-300">
+                {post.author}
+              </strong>
             </span>
             {post.createdAt && (
               <span className="ml-2">
-                • {new Date(post.createdAt).toLocaleDateString('en-GB')}
+                • {new Date(post.createdAt).toLocaleDateString("en-GB")}
               </span>
             )}
           </div>

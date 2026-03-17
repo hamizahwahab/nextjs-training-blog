@@ -1,81 +1,88 @@
 import clientPromise, { dbName } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { updatePost } from "../../../actions";
+import PostForm from "@/components/PostForm";
 
-export default async function EditPostPage({
-  params,
-}: {
+interface Post {
+  _id: ObjectId;
+  title: string;
+  author: string;
+  content: string;
+}
+
+interface EditPostPageProps {
   params: Promise<{ id: string }>;
-}) {
+}
+
+export default async function EditPostPage({ params }: EditPostPageProps) {
   const { id } = await params;
 
-  if (!ObjectId.isValid(id)) return notFound();
+  if (!ObjectId.isValid(id)) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
+          Invalid Post ID
+        </h2>
+        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+          The post ID format is invalid.
+        </p>
+      </div>
+    );
+  }
 
-  const client = await clientPromise;
-  const db = client.db(dbName);
-  const post = await db.collection("posts").findOne({ _id: new ObjectId(id) });
+  let post: Post | null = null;
 
-  if (!post) return notFound();
-
-  async function updatePost(formData: FormData) {
-    "use server";
+  try {
     const client = await clientPromise;
     const db = client.db(dbName);
-
-    await db.collection("posts").updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          title: formData.get("title"),
-          author: formData.get("author"),
-          content: formData.get("content"),
-        },
-      }
+    post = await db.collection<Post>("posts").findOne({ _id: new ObjectId(id) });
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
+          Connection Error
+        </h2>
+        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+          Unable to connect to the database. Please check your MongoDB connection.
+        </p>
+      </div>
     );
-    redirect(`/post/${id}`);
   }
+
+  if (!post) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
+          Post Not Found
+        </h2>
+        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
+          This post doesn&apos;t exist or has been deleted.
+        </p>
+      </div>
+    );
+  }
+
+  const handleSubmit = async (data: { title: string; author: string; content: string }) => {
+    "use server";
+    await updatePost(id, data);
+  };
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8 sm:py-12">
       <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white mb-6">
         Edit Post
       </h1>
-      <form action={updatePost} className="space-y-4">
-        <div>
-          <input
-            name="title"
-            defaultValue={post.title as string}
-            placeholder="Title"
-            required
-            className="w-full px-4 py-3 text-base border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-          />
-        </div>
-        <div>
-          <input
-            name="author"
-            defaultValue={post.author as string}
-            placeholder="Author"
-            required
-            className="w-full px-4 py-3 text-base border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-          />
-        </div>
-        <div>
-          <textarea
-            name="content"
-            defaultValue={post.content as string}
-            placeholder="Content"
-            required
-            rows={6}
-            className="w-full px-4 py-3 text-base border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-y"
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
-        >
-          Save Changes
-        </button>
-      </form>
+      <PostForm
+        defaultValues={{
+          title: post.title,
+          author: post.author,
+          content: post.content,
+        }}
+        buttonText="Save Changes"
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }
