@@ -2,127 +2,76 @@
 
 import useSWR from "swr";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
-import PostCard from "./PostCard";
+import { ObjectId } from "mongodb";
+import Alert from "@/components/ui/Alert";
+import { Skeleton } from "./Skeleton";
 
 interface Post {
-  _id: string;
+  _id: ObjectId;
   title: string;
   author: string;
   content: string;
-  createdAt?: string;
+  createdAt?: Date;
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => {
-  if (!res.ok) {
-    throw new Error("Failed to fetch posts");
-  }
-  return res.json();
-});
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-function PostListContent() {
-  const searchParams = useSearchParams();
-  const search = searchParams.get("search");
-  
-  const apiUrl = search ? `/api/posts?search=${encodeURIComponent(search)}` : "/api/posts";
-
-  const { data: posts, error, isLoading, mutate } = useSWR<Post[]>(apiUrl, fetcher, {
+export default function PostList() {
+  const apiUrl = "/api/posts";
+  const { data: posts, error, isLoading } = useSWR<Post[]>(apiUrl, fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 5000,
+    refreshInterval: 30000,
+    fallbackData: undefined,
   });
-
-  if (error) {
-    return (
-      <div className="text-center py-12 sm:py-16 border-2 border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 rounded-xl">
-        <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">
-          Error Loading Posts
-        </h2>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-          Unable to load posts. Please try again.
-        </p>
-        <button
-          onClick={() => mutate()}
-          className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
 
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden p-5 animate-pulse"
-          >
-            <div className="h-6 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4 mb-3" />
-            <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2 mb-4" />
-            <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-full mb-2" />
-            <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-2/3" />
-          </div>
+          <Skeleton key={i} />
         ))}
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <Alert variant="error">
+        Failed to load posts. Please try again later.
+      </Alert>
+    );
+  }
+
   if (!posts || posts.length === 0) {
     return (
-      <div className="text-center py-12 sm:py-16 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl">
-        <p className="text-neutral-600 dark:text-neutral-400 mb-4 text-lg">
-          {search
-            ? `No posts found matching "${search}".`
-            : "No posts found. Be the first to write something!"}
-        </p>
-        <Link
-          href="/add"
-          className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
-        >
-          Create a Post
-        </Link>
-      </div>
+      <Alert variant="info">
+        No posts yet. Be the first to create one!
+      </Alert>
     );
   }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
       {posts.map((post) => (
-        <PostCard
-          key={post._id}
-          id={post._id}
-          title={post.title}
-          author={post.author}
-          content={post.content}
-          createdAt={post.createdAt ? new Date(post.createdAt) : undefined}
-        />
+        <Link
+          key={post._id.toString()}
+          href={`/post/${post._id.toString()}`}
+          className="block group"
+        >
+          <article className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-5 hover:shadow-lg transition-shadow h-full">
+            <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              {post.title}
+            </h2>
+            <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
+              By {post.author}
+            </p>
+            <p className="text-neutral-600 dark:text-neutral-300 line-clamp-3">
+              {post.content}
+            </p>
+          </article>
+        </Link>
       ))}
     </div>
-  );
-}
-
-export default function PostList() {
-  return (
-    <Suspense
-      fallback={
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden p-5 animate-pulse"
-            >
-              <div className="h-6 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4 mb-3" />
-              <div className="h-3 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2 mb-4" />
-              <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-full mb-2" />
-              <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-2/3" />
-            </div>
-          ))}
-        </div>
-      }
-    >
-      <PostListContent />
-    </Suspense>
   );
 }

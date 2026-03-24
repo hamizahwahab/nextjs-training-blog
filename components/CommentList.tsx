@@ -1,7 +1,9 @@
 "use client";
 
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
+import { useState, useEffect } from "react";
 import Comment from "./Comment";
+import Alert from "@/components/ui/Alert";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -9,73 +11,64 @@ interface Comment {
   _id: string;
   author: string;
   content: string;
-  createdAt: string | Date;
+  createdAt?: string;
 }
 
-interface CommentListProps {
-  postId: string;
-}
-
-export default function CommentList({ postId }: CommentListProps) {
+export default function CommentList({ postId }: { postId: string }) {
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  
   const { data: comments, error, isLoading } = useSWR<Comment[]>(
     `/api/posts/${postId}/comments`,
     fetcher,
-    {
-      revalidateOnFocus: false,
-    }
+    { revalidateOnFocus: false }
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleCommentAdded = () => {
-    mutate(`/api/posts/${postId}/comments`);
-  };
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(res => res.ok ? res.json() : null)
+      .then(data => setCurrentUser(data?.username || null))
+      .catch(() => setCurrentUser(null));
+  }, []);
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="h-6 bg-neutral-200 dark:bg-neutral-700 rounded w-24 animate-pulse" />
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4 animate-pulse">
-            <div className="h-4 bg-neutral-300 dark:bg-neutral-700 rounded w-1/4 mb-2" />
-            <div className="h-4 bg-neutral-300 dark:bg-neutral-700 rounded w-3/4" />
-          </div>
-        ))}
+      <div className="space-y-4 mt-6">
+        <div className="animate-pulse space-y-2">
+          <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-1/4"></div>
+          <div className="h-16 bg-neutral-200 dark:bg-neutral-700 rounded"></div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-500 dark:text-red-400">Failed to load comments</p>
-        <button
-          onClick={() => mutate(`/api/posts/${postId}/comments`)}
-          className="text-blue-600 dark:text-blue-400 hover:underline mt-2"
-        >
-          Try again
-        </button>
-      </div>
+      <Alert variant="error" className="mt-4">
+        Failed to load comments. Please try again.
+      </Alert>
+    );
+  }
+
+  if (!comments || comments.length === 0) {
+    return (
+      <Alert variant="info" className="mt-4">
+        No comments yet. Be the first to comment!
+      </Alert>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-xl font-bold text-neutral-900 dark:text-white">
-        {comments?.length || 0} Comments
+    <div className="space-y-4 mt-6">
+      <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+        {comments.length} Comment{comments.length !== 1 ? "s" : ""}
       </h3>
-      {comments?.length === 0 ? (
-        <p className="text-neutral-500 dark:text-neutral-400">No comments yet. Be the first to comment!</p>
-      ) : (
-        comments?.map((comment) => (
-          <Comment
-            key={comment._id}
-            comment={comment}
-            onDelete={() => {
-              mutate(`/api/posts/${postId}/comments`);
-            }}
-          />
-        ))
-      )}
+      {comments.map((comment) => (
+        <Comment 
+          key={comment._id.toString()} 
+          comment={comment} 
+          currentUser={currentUser}
+        />
+      ))}
     </div>
   );
 }

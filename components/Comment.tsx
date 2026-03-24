@@ -2,36 +2,37 @@
 
 import { useState } from "react";
 import { useNotificationStore } from "@/lib/store";
+import Button from "@/components/ui/Button";
 
 interface CommentProps {
   comment: {
     _id: string;
     author: string;
     content: string;
-    createdAt: string | Date;
+    createdAt?: string;
   };
-  onDelete: () => void;
+  currentUser?: string | null;
 }
 
-export default function Comment({ comment, onDelete }: CommentProps) {
+export default function Comment({ comment, currentUser }: CommentProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const showNotification = useNotificationStore((state) => state.showNotification);
+  const { showNotification } = useNotificationStore();
 
   const handleDelete = async () => {
     if (!confirm("Delete this comment?")) return;
-
+    
     setIsDeleting(true);
     try {
       const res = await fetch(`/api/comments/${comment._id}`, {
         method: "DELETE",
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to delete comment");
+      
+      if (res.ok) {
+        showNotification("Comment deleted", "success");
+        window.location.reload();
+      } else {
+        showNotification("Failed to delete comment", "error");
       }
-
-      showNotification("Comment deleted", "success");
-      onDelete();
     } catch (error) {
       console.log('Error to delete comment', error);
       showNotification("Failed to delete comment", "error");
@@ -41,42 +42,30 @@ export default function Comment({ comment, onDelete }: CommentProps) {
   };
 
   return (
-    <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4">
-      <div className="flex justify-between items-start">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="font-semibold text-neutral-900 dark:text-white">
-              {comment.author}
-            </span>
-            <span className="text-neutral-400 text-sm">
+    <div className="border-b border-neutral-200 dark:border-neutral-800 pb-4 last:border-0">
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-medium text-neutral-900 dark:text-white">
+          {comment.author}
+        </span>
+        <div className="flex items-center gap-2">
+          {comment.createdAt && (
+            <span className="text-neutral-500 dark:text-neutral-400 text-sm">
               {new Date(comment.createdAt).toLocaleDateString("en-GB")}
             </span>
-          </div>
-          <p className="text-neutral-700 dark:text-neutral-300">
-            {comment.content}
-          </p>
+          )}
+          {currentUser === comment.author && (
+            <Button
+              onClick={handleDelete}
+              variant="ghost"
+              size="sm"
+              isLoading={isDeleting}
+            >
+              Delete
+            </Button>
+          )}
         </div>
-        <button
-          onClick={handleDelete}
-          disabled={isDeleting}
-          className="text-neutral-400 hover:text-red-500 transition-colors p-1 disabled:opacity-50"
-          aria-label="Delete comment"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            />
-          </svg>
-        </button>
       </div>
+      <p className="text-neutral-600 dark:text-neutral-300">{comment.content}</p>
     </div>
   );
 }

@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Alert from "@/components/ui/Alert";
+import Card from "@/components/ui/Card";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,7 +16,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  // Check if user just registered
   const justRegistered = searchParams.get("registered") === "true";
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +37,6 @@ export default function LoginPage() {
         return;
       }
 
-      // Redirect to homepage on success
       router.push("/");
       router.refresh();
     } catch {
@@ -50,57 +52,43 @@ export default function LoginPage() {
         Welcome Back
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {justRegistered && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 px-4 py-3 rounded-lg">
-            Account created successfully! Please sign in.
-          </div>
-        )}
+      <Card className="p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {justRegistered && (
+            <Alert variant="success">
+              Account created successfully! Please sign in.
+            </Alert>
+          )}
 
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        )}
+          {error && (
+            <Alert variant="error">{error}</Alert>
+          )}
 
-        <div>
-          <label htmlFor="username" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-            Username
-          </label>
-          <input
+          <Input
             id="username"
             type="text"
+            label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            required
-            className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter your username"
+            required
           />
-        </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-            Password
-          </label>
-          <input
+          <Input
             id="password"
             type="password"
+            label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter your password"
+            required
           />
-        </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium px-6 py-3 rounded-lg transition-colors"
-        >
-          {isLoading ? "Signing in..." : "Sign In"}
-        </button>
-      </form>
+          <Button type="submit" isLoading={isLoading} className="w-full">
+            Sign In
+          </Button>
+        </form>
+      </Card>
 
       <p className="mt-6 text-center text-neutral-600 dark:text-neutral-400">
         Don&apos;t have an account?{" "}

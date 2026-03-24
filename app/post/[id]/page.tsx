@@ -3,9 +3,19 @@ import { getCurrentUser } from "@/lib/auth";
 import { ObjectId } from "mongodb";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import DeleteButton from "@/components/DeleteButton";
-import CommentsSection from "@/components/CommentsSection";
-import LikeButton from "@/components/LikeButton";
+import dynamic from "next/dynamic";
+
+const DeleteButton = dynamic(() => import("@/components/DeleteButton"), {
+  loading: () => <div className="h-10 w-24 bg-neutral-200 dark:bg-neutral-700 rounded-lg animate-pulse" />,
+});
+
+const LikeButton = dynamic(() => import("@/components/LikeButton"), {
+  loading: () => <div className="h-8 w-16 bg-neutral-200 dark:bg-neutral-700 rounded-full animate-pulse" />,
+});
+
+const CommentsSection = dynamic(() => import("@/components/CommentsSection"), {
+  loading: () => <div className="space-y-4 mt-6"><div className="h-20 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" /></div>,
+});
 
 interface Post {
   _id: ObjectId;
