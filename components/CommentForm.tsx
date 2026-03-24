@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { commentSchema, CommentFormData } from "@/lib/schemas";
+import { useNotificationStore } from "@/lib/store";
 
 interface CommentFormProps {
   postId: string;
@@ -12,6 +13,7 @@ interface CommentFormProps {
 
 export default function CommentForm({ postId, onSuccess }: CommentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const showNotification = useNotificationStore((state) => state.showNotification);
   
   const { register, handleSubmit, reset, formState: { errors } } = useForm<CommentFormData>({
     resolver: zodResolver(commentSchema),
@@ -20,13 +22,24 @@ export default function CommentForm({ postId, onSuccess }: CommentFormProps) {
   const onSubmit = async (data: CommentFormData) => {
     setIsSubmitting(true);
     try {
-      await fetch(`/api/posts/${postId}/comments`, {
+      const res = await fetch(`/api/posts/${postId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+
+      if (!res.ok) {
+        throw new Error("Failed to add comment");
+      }
+
       reset();
+      showNotification("Comment added successfully!", "success");
       onSuccess();
+
+    } catch (error) {
+      console.log('Error to add comment', error);
+      showNotification("Failed to add comment", "error");
+
     } finally {
       setIsSubmitting(false);
     }

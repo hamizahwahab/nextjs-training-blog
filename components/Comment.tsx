@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { useNotificationStore } from "@/lib/store";
+
 interface CommentProps {
   comment: {
     _id: string;
@@ -11,16 +14,29 @@ interface CommentProps {
 }
 
 export default function Comment({ comment, onDelete }: CommentProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const showNotification = useNotificationStore((state) => state.showNotification);
+
   const handleDelete = async () => {
     if (!confirm("Delete this comment?")) return;
-    
+
+    setIsDeleting(true);
     try {
-      await fetch(`/api/comments/${comment._id}`, {
+      const res = await fetch(`/api/comments/${comment._id}`, {
         method: "DELETE",
       });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete comment");
+      }
+
+      showNotification("Comment deleted", "success");
       onDelete();
     } catch (error) {
-      console.error("Error deleting comment:", error);
+      console.log('Error to delete comment', error);
+      showNotification("Failed to delete comment", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -42,7 +58,8 @@ export default function Comment({ comment, onDelete }: CommentProps) {
         </div>
         <button
           onClick={handleDelete}
-          className="text-neutral-400 hover:text-red-500 transition-colors p-1"
+          disabled={isDeleting}
+          className="text-neutral-400 hover:text-red-500 transition-colors p-1 disabled:opacity-50"
           aria-label="Delete comment"
         >
           <svg

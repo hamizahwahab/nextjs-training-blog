@@ -1,6 +1,6 @@
 "use client";
 
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import Comment from "./Comment";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -17,10 +17,18 @@ interface CommentListProps {
 }
 
 export default function CommentList({ postId }: CommentListProps) {
-  const { data: comments, error, isLoading, mutate } = useSWR<Comment[]>(
+  const { data: comments, error, isLoading } = useSWR<Comment[]>(
     `/api/posts/${postId}/comments`,
-    fetcher
+    fetcher,
+    {
+      revalidateOnFocus: false,
+    }
   );
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleCommentAdded = () => {
+    mutate(`/api/posts/${postId}/comments`);
+  };
 
   if (isLoading) {
     return (
@@ -35,13 +43,13 @@ export default function CommentList({ postId }: CommentListProps) {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="text-center py-8">
         <p className="text-red-500 dark:text-red-400">Failed to load comments</p>
-        <button 
-          onClick={() => mutate()} 
+        <button
+          onClick={() => mutate(`/api/posts/${postId}/comments`)}
           className="text-blue-600 dark:text-blue-400 hover:underline mt-2"
         >
           Try again
@@ -52,17 +60,19 @@ export default function CommentList({ postId }: CommentListProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-xl font-bold text-neutral-900 dark:text-white mt-2">
+      <h3 className="text-xl font-bold text-neutral-900 dark:text-white">
         {comments?.length || 0} Comments
       </h3>
       {comments?.length === 0 ? (
         <p className="text-neutral-500 dark:text-neutral-400">No comments yet. Be the first to comment!</p>
       ) : (
         comments?.map((comment) => (
-          <Comment 
-            key={comment._id} 
-            comment={comment} 
-            onDelete={() => mutate()} 
+          <Comment
+            key={comment._id}
+            comment={comment}
+            onDelete={() => {
+              mutate(`/api/posts/${postId}/comments`);
+            }}
           />
         ))
       )}

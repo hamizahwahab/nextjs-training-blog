@@ -1,13 +1,16 @@
 import clientPromise, { dbName } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 import { updatePost } from "../../../actions";
 import PostForm from "@/components/PostForm";
+import { getCurrentUser } from "@/lib/auth";
 
 interface Post {
   _id: ObjectId;
   title: string;
   author: string;
+  authorId?: string;
   content: string;
 }
 
@@ -17,18 +20,14 @@ interface EditPostPageProps {
 
 export default async function EditPostPage({ params }: EditPostPageProps) {
   const { id } = await params;
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
 
   if (!ObjectId.isValid(id)) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
-          Invalid Post ID
-        </h2>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-          The post ID format is invalid.
-        </p>
-      </div>
-    );
+    return notFound();
   }
 
   let post: Post | null = null;
@@ -45,21 +44,37 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
           Connection Error
         </h2>
         <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-          Unable to connect to the database. Please check your MongoDB connection.
+          Unable to connect to the database.
         </p>
+        <Link
+          href="/"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          ← Back to Home
+        </Link>
       </div>
     );
   }
 
   if (!post) {
+    return notFound();
+  }
+
+  if (post.authorId !== user.username) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center">
         <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">
-          Post Not Found
+          Access Denied
         </h2>
         <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-          This post doesn&apos;t exist or has been deleted.
+          You can only edit your own posts.
         </p>
+        <Link
+          href="/"
+          className="text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          ← Back to Home
+        </Link>
       </div>
     );
   }

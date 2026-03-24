@@ -1,15 +1,17 @@
 import clientPromise, { dbName } from "@/lib/mongodb";
+import { getCurrentUser } from "@/lib/auth";
 import { ObjectId } from "mongodb";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import DeleteButton from "@/components/DeleteButton";
 import CommentsSection from "@/components/CommentsSection";
-
+import LikeButton from "@/components/LikeButton";
 
 interface Post {
   _id: ObjectId;
   title: string;
   author: string;
+  authorId?: string;
   content: string;
   createdAt?: Date;
 }
@@ -30,10 +32,7 @@ export default async function PostPage({ params }: PostPageProps) {
         <p className="text-neutral-600 dark:text-neutral-400 mb-6">
           The post ID format is invalid.
         </p>
-        <Link
-          href="/"
-          className="text-blue-600 dark:text-blue-400 hover:underline"
-        >
+        <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">
           ← Back to Home
         </Link>
       </div>
@@ -45,9 +44,7 @@ export default async function PostPage({ params }: PostPageProps) {
   try {
     const client = await clientPromise;
     const db = client.db(dbName);
-    post = await db.collection<Post>("posts").findOne({
-      _id: new ObjectId(id),
-    });
+    post = await db.collection<Post>("posts").findOne({ _id: new ObjectId(id) });
   } catch (error) {
     console.error("Database connection error:", error);
     return (
@@ -56,12 +53,9 @@ export default async function PostPage({ params }: PostPageProps) {
           Connection Error
         </h2>
         <p className="text-neutral-600 dark:text-neutral-400 mb-6">
-          Unable to connect to the database. Please check your MongoDB connection.
+          Unable to connect to the database.
         </p>
-        <Link
-          href="/"
-          className="text-blue-600 dark:text-blue-400 hover:underline"
-        >
+        <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">
           ← Back to Home
         </Link>
       </div>
@@ -77,10 +71,7 @@ export default async function PostPage({ params }: PostPageProps) {
         <p className="text-neutral-600 dark:text-neutral-400 mb-6">
           This post doesn&apos;t exist or has been deleted.
         </p>
-        <Link
-          href="/"
-          className="text-blue-600 dark:text-blue-400 hover:underline"
-        >
+        <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">
           ← Back to Home
         </Link>
       </div>
@@ -95,53 +86,41 @@ export default async function PostPage({ params }: PostPageProps) {
     redirect("/");
   }
 
+  const user = await getCurrentUser();
+  const isOwner = user?.username === post.authorId;
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <Link
         href="/"
         className="inline-flex items-center text-blue-600 dark:text-blue-400 font-medium hover:underline mb-6"
       >
-        <svg
-          className="w-4 h-4 mr-1"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 19l-7-7 7-7"
-          />
+        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
         Back to All Posts
       </Link>
 
-      <div className="flex flex-col sm:flex-row gap-3 border-t border-neutral-200 dark:border-neutral-800 pt-5 mb-6">
-        <Link
-          href={`/post/${id}/edit`}
-          className="inline-flex justify-center items-center bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg transition-colors text-sm"
-        >
-          <svg
-            className="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+      {isOwner && (
+        <div className="flex flex-col sm:flex-row gap-3 border-t border-neutral-200 dark:border-neutral-800 pt-5 mb-6">
+          <Link
+            href={`/post/${id}/edit`}
+            className="inline-flex justify-center items-center bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg transition-colors text-sm"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-            />
-          </svg>
-          Edit Post
-        </Link>
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit Post
+          </Link>
+          <DeleteButton onDelete={deletePost} />
+        </div>
+      )}
 
-        <DeleteButton onDelete={deletePost} />
+      <div className="flex items-center gap-3">
+        <LikeButton postId={id} initialLikes={0} initialLiked={false} />
       </div>
 
-      <article className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-6 sm:p-8">
+      <article className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-6 sm:p-8 mt-6">
         <header className="border-b-2 border-neutral-100 dark:border-neutral-800 pb-5 mb-6">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 dark:text-white mb-3">
             {post.title}
@@ -149,34 +128,22 @@ export default async function PostPage({ params }: PostPageProps) {
           <div className="text-neutral-500 dark:text-neutral-400 text-sm">
             <span>
               Published by{" "}
-              <strong className="text-neutral-700 dark:text-neutral-300">
-                {post.author}
-              </strong>
+              <strong className="text-neutral-700 dark:text-neutral-300">{post.author}</strong>
             </span>
             {post.createdAt && (
-              <span className="ml-2">
-                • {new Date(post.createdAt).toLocaleDateString("en-GB")}
-              </span>
+              <span className="ml-2">• {new Date(post.createdAt).toLocaleDateString("en-GB")}</span>
             )}
           </div>
         </header>
-
         <section className="prose prose-neutral dark:prose-invert max-w-none text-neutral-700 dark:text-neutral-300 leading-relaxed text-base sm:text-lg whitespace-pre-wrap">
           {post.content}
         </section>
       </article>
 
-      {/* Comments Section */}
       <div className="mt-8 border-t border-neutral-200 dark:border-neutral-800 pt-8">
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
-          Comments
-        </h2>
-        
-        {/* Comment Form */}
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">Comments</h2>
         <CommentsSection postId={id} />
       </div>
-
     </div>
-    
   );
 }
