@@ -46,23 +46,6 @@ export default function PostForm({
       </div>
 
       <div>
-        <input
-          {...register("author")}
-          placeholder="Your Name"
-          className={`w-full px-4 py-3 text-base border rounded-lg bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-            errors.author
-              ? "border-red-500 dark:border-red-500"
-              : "border-neutral-300 dark:border-neutral-600"
-          }`}
-        />
-        {errors.author && (
-          <p className="text-red-500 dark:text-red-400 text-sm mt-1">
-            {errors.author.message}
-          </p>
-        )}
-      </div>
-
-      <div>
         <textarea
           {...register("content")}
           placeholder="Write your content here..."

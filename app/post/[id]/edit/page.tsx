@@ -79,7 +79,7 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     );
   }
 
-  const handleSubmit = async (data: { title: string; author: string; content: string }) => {
+  const handleSubmit = async (data: { title: string; content: string }) => {
     "use server";
     await updatePost(id, data);
   };
@@ -92,7 +92,6 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
       <PostForm
         defaultValues={{
           title: post.title,
-          author: post.author,
           content: post.content,
         }}
         buttonText="Save Changes"

@@ -18,8 +18,8 @@ export async function createPost(data: PostFormData) {
 
   await db.collection("posts").insertOne({
     title: data.title,
-    author: data.author,
-    authorId: user.username,  // Track ownership
+    author: user.username,
+    authorId: user.username,
     content: data.content,
     createdAt: new Date(),
   });
@@ -57,7 +57,6 @@ export async function updatePost(id: string, data: PostFormData) {
     {
       $set: {
         title: data.title,
-        author: data.author,
         content: data.content,
       },
     }

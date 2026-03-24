@@ -60,6 +60,12 @@ export default function Navbar() {
                 <span className="text-neutral-300 text-sm">
                   Welcome, <strong>{username}</strong>
                 </span>
+                <Link
+                  href="/add"
+                  className="text-neutral-300 hover:text-white transition-colors text-sm font-medium"
+                >
+                  Add Post
+                </Link>
                 <button
                   onClick={handleLogout}
                   disabled={isLoggingOut}
@@ -142,6 +148,13 @@ export default function Navbar() {
                   <span className="text-neutral-300 text-sm">
                     Welcome, <strong>{username}</strong>
                   </span>
+                  <Link
+                    href="/add"
+                    className="text-left text-neutral-300 hover:text-white transition-colors text-sm font-medium"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Add Post
+                  </Link>
                   <button
                     onClick={handleLogout}
                     disabled={isLoggingOut}
