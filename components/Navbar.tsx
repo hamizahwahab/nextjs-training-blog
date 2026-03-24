@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export default function Navbar() {
     };
     
     checkAuth();
-  }, []);
+  }, [pathname]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
