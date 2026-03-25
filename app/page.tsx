@@ -1,6 +1,9 @@
+"use client";
+
 import { Suspense } from "react";
 import SearchBar from "@/components/SearchBar";
 import PostList from "@/components/PostList";
+import { useTranslations } from "@/lib/i18n";
 
 function SearchBarFallback() {
   return (
@@ -13,18 +16,16 @@ function SearchBarFallback() {
 }
 
 export default function HomePage() {
+  const t = useTranslations();
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <header className="text-center mb-8">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-neutral-900 dark:text-white mb-3">
-          Recent Stories
+          {t("home.title")}
         </h1>
         <p className="text-neutral-600 dark:text-neutral-400 text-base sm:text-lg">
-          Insights and thoughts from the{" "}
-          <code className="bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded text-sm">
-            blog_db
-          </code>{" "}
-          database.
+          {t("home.subtitle")}
         </p>
       </header>
 

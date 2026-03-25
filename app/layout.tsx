@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Notification from "@/components/Notification";
 import WebVitals from "@/components/WebVitals";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { I18nProvider } from "@/lib/i18n";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,7 +22,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors`}>
-        <ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider>
           <WebVitals />
           <Navbar />
           <Notification />
@@ -30,6 +32,8 @@ export default function RootLayout({
             <p>© {new Date().getFullYear()} My Next.js Training Blog</p>
           </footer>
         </ThemeProvider>
+        </I18nProvider>
+        
       </body>
     </html>
   );

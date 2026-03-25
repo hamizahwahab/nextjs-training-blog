@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useTranslations } from "@/lib/i18n";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -12,6 +14,7 @@ export default function Navbar() {
   const [username, setUsername] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const t = useTranslations();
 
   useEffect(() => {
     // Check if user is logged in
@@ -57,23 +60,25 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
+            <LanguageSwitcher />
+             
             {isLoggedIn ? (
               <>
                 <span className="text-neutral-300 text-sm">
-                  Welcome, <strong>{username}</strong>
+                  {t("nav.welcome")} <strong>{username}</strong>
                 </span>
                 <Link
                   href="/add"
                   className="text-neutral-300 hover:text-white transition-colors text-sm font-medium"
                 >
-                  Add Post
+                  {t("nav.addPost")}
                 </Link>
                 <button
                   onClick={handleLogout}
                   disabled={isLoggingOut}
                   className="text-neutral-300 hover:text-white transition-colors text-sm font-medium disabled:opacity-50"
                 >
-                  {isLoggingOut ? "Logging out..." : "Logout"}
+                  {isLoggingOut ? "Logging out..." : t("nav.logout")}
                 </button>
               </>
             ) : (
@@ -82,13 +87,13 @@ export default function Navbar() {
                   href="/login"
                   className="text-neutral-300 hover:text-white transition-colors text-sm font-medium"
                 >
-                  Login
+                  {t("nav.login")}
                 </Link>
                 <Link
                   href="/register"
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
-                  Register
+                  {t("nav.register")}
                 </Link>
               </>
             )}
@@ -148,21 +153,21 @@ export default function Navbar() {
               {isLoggedIn ? (
                 <>
                   <span className="text-neutral-300 text-sm">
-                    Welcome, <strong>{username}</strong>
+                    {t("nav.welcome")} <strong>{username}</strong>
                   </span>
                   <Link
                     href="/add"
                     className="text-left text-neutral-300 hover:text-white transition-colors text-sm font-medium"
                     onClick={() => setIsOpen(false)}
                   >
-                    Add Post
+                     {t("nav.addPost")}
                   </Link>
                   <button
                     onClick={handleLogout}
                     disabled={isLoggingOut}
                     className="text-left text-neutral-300 hover:text-white transition-colors text-sm font-medium disabled:opacity-50"
                   >
-                    {isLoggingOut ? "Logging out..." : "Logout"}
+                    {isLoggingOut ? "Logging out..." : t("nav.logout")}
                   </button>
                 </>
               ) : (
@@ -172,14 +177,14 @@ export default function Navbar() {
                     className="text-neutral-300 hover:text-white transition-colors text-sm font-medium"
                     onClick={() => setIsOpen(false)}
                   >
-                    Login
+                    {t("nav.login")}
                   </Link>
                   <Link
                     href="/register"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors text-center"
                     onClick={() => setIsOpen(false)}
                   >
-                    Register
+                    {t("nav.register")}
                   </Link>
                 </>
               )}
