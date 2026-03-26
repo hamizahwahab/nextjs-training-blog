@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
@@ -8,7 +8,7 @@ import Input from "@/components/ui/Input";
 import Alert from "@/components/ui/Alert";
 import Card from "@/components/ui/Card";
 
-export default function LoginPage() {
+function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
@@ -97,5 +97,20 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-md mx-auto px-4 py-12">
+        <div className="animate-pulse">
+          <div className="h-10 bg-neutral-200 dark:bg-neutral-700 rounded mb-8 mx-auto max-w-xs"></div>
+          <div className="h-64 bg-neutral-200 dark:bg-neutral-700 rounded-lg"></div>
+        </div>
+      </div>
+    }>
+      <LoginFormContent />
+    </Suspense>
   );
 }
