@@ -25,15 +25,20 @@ export default function LikeButton({ postId, initialLikes, initialLiked }: LikeB
     setLikes(newLikes);
 
     try {
+      const method = newLiked ? "POST" : "POST";
       const res = await fetch(`/api/posts/${postId}/like`, {
-        method: newLiked ? "POST" : "DELETE",
+        method: method,
       });
 
       if (!res.ok) {
         throw new Error("Failed to update like");
       }
 
-      showNotification(newLiked ? "Post liked!" : "Post unliked", "success");
+      const data = await res.json();
+      setLikes(data.likes);
+      setLiked(data.liked);
+      
+      showNotification(data.liked ? "Post liked!" : "Post unliked", "success");
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setLiked(!newLiked);

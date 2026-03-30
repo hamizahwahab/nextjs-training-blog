@@ -23,6 +23,8 @@ interface Post {
   author: string;
   authorId?: string;
   content: string;
+  likes: number;
+  likedBy: string[];
   createdAt?: Date;
 }
 
@@ -98,6 +100,8 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const user = await getCurrentUser();
   const isOwner = user?.username === post.authorId;
+  const isLiked = user && post.likedBy ? post.likedBy.includes(user.username) : false;
+  const likes = post.likes || 0;
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -127,7 +131,7 @@ export default async function PostPage({ params }: PostPageProps) {
       )}
 
       <div className="flex items-center gap-3">
-        <LikeButton postId={id} initialLikes={0} initialLiked={false} />
+        <LikeButton postId={id} initialLikes={likes} initialLiked={isLiked} />
       </div>
 
       <article className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-6 sm:p-8 mt-6">

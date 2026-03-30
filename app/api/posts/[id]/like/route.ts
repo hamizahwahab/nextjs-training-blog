@@ -9,8 +9,67 @@ interface Post {
   author: string;
   authorId?: string;
   content: string;
+  likes: number;
+  likedBy: string[];
   createdAt?: Date;
 }
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!ObjectId.isValid(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
+
+  try {
+    const client = await clientPromise;
+    const db = client.db(dbName);
+
+    const post = await db.collection<Post>("posts").findOne({ _id: new ObjectId(id) });
+    
+    if (!post) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
+
+    const likedBy = post.likedBy || [];
+    const isLiked = likedBy.includes(user.username);
+    const currentLikes = post.likes || 0;
+
+    if (isLiked) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await db.collection("posts").updateOne(
+        { _id: new ObjectId(id) },
+        { 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          $pull: { likedBy: user.username } as any,
+          $set: { likes: Math.max(0, currentLikes - 1) }
+        }
+      );
+      return NextResponse.json({ liked: false, likes: Math.max(0, currentLikes - 1) });
+    } else {
+      await db.collection("posts").updateOne(
+        { _id: new ObjectId(id) },
+        { 
+          $addToSet: { likedBy: user.username },
+          $set: { likes: currentLikes + 1 }
+        }
+      );
+      return NextResponse.json({ liked: true, likes: currentLikes + 1 });
+    }
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    return NextResponse.json({ error: "Failed to toggle like" }, { status: 500 });
+  }
+}
+
 
 export async function GET(
   request: Request,
