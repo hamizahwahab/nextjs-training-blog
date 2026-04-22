@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import clientPromise, { dbName } from "@/lib/mongodb";
 import { getCurrentUser } from "@/lib/auth";
-import { ObjectId } from "mongodb";
+import { ObjectId, UpdateFilter } from "mongodb";
 
 interface Post {
   _id: ObjectId;
@@ -44,12 +44,10 @@ export async function POST(
     const currentLikes = post.likes || 0;
 
     if (isLiked) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await db.collection("posts").updateOne(
         { _id: new ObjectId(id) },
         { 
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          $pull: { likedBy: user.username } as any,
+          $pull: { likedBy: user.username } as UpdateFilter<Post>,
           $set: { likes: Math.max(0, currentLikes - 1) }
         }
       );

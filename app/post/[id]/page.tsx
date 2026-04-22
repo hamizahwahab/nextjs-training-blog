@@ -149,9 +149,10 @@ export default async function PostPage({ params }: PostPageProps) {
             )}
           </div>
         </header>
-        <section className="prose prose-neutral dark:prose-invert max-w-none text-neutral-700 dark:text-neutral-300 leading-relaxed text-base sm:text-lg whitespace-pre-wrap">
-          {post.content}
-        </section>
+        <section 
+          className="prose prose-neutral dark:prose-invert max-w-none text-neutral-700 dark:text-neutral-300 leading-relaxed text-base sm:text-lg"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
       </article>
 
       <div className="mt-8 border-t border-neutral-200 dark:border-neutral-800 pt-8">

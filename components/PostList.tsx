@@ -66,9 +66,10 @@ export default function PostList() {
             <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
               By {post.author}
             </p>
-            <p className="text-neutral-600 dark:text-neutral-300 line-clamp-3">
-              {post.content}
-            </p>
+            <div 
+              className="text-neutral-600 dark:text-neutral-300 line-clamp-3 prose prose-sm dark:prose-invert"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
           </article>
         </Link>
       ))}
