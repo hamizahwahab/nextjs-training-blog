@@ -10,6 +10,33 @@ import { common, createLowlight } from "lowlight";
 
 const lowlight = createLowlight(common);
 
+interface ToolbarButtonProps {
+  onClick: () => void;
+  isActive?: boolean;
+  children: React.ReactNode;
+  title: string;
+}
+
+const ToolbarButton = ({
+  onClick,
+  isActive,
+  children,
+  title,
+}: ToolbarButtonProps) => (
+  <button
+    type="button"
+    onClick={onClick}
+    title={title}
+    className={`p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors ${
+      isActive
+        ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+        : "text-neutral-600 dark:text-neutral-400"
+    }`}
+  >
+    {children}
+  </button>
+);
+
 interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
@@ -58,7 +85,7 @@ export default function RichTextEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-neutral dark:prose-invert max-w-none min-h-[200px] px-4 py-3 focus:outline-none [&_p]:mb-3 [&_p]:leading-relaxed",
+          "prose prose-neutral dark:prose-invert max-w-none min-h-[200px] px-4 py-3 focus:outline-none [&_p]:mb-3 [&_p]:leading-relaxed [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-3 [&_li]:mb-1",
       },
     },
   });
@@ -66,31 +93,6 @@ export default function RichTextEditor({
   if (!editor) {
     return null;
   }
-
-  const ToolbarButton = ({
-    onClick,
-    isActive,
-    children,
-    title,
-  }: {
-    onClick: () => void;
-    isActive?: boolean;
-    children: React.ReactNode;
-    title: string;
-  }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={`p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors ${
-        isActive
-          ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-          : "text-neutral-600 dark:text-neutral-400"
-      }`}
-    >
-      {children}
-    </button>
-  );
 
   const addLink = () => {
     const url = window.prompt("Enter URL:");
